@@ -11,10 +11,17 @@ for file in "$in"/**/*.mp3; do
 		read -r artist 
 		read -r album
 		read -r band
-	} < <(exiftool -s3 -artist -album -band "$file")
+		read -r partofset
+	} < <(exiftool -s3 -artist -album -band -partofset "$file")
 	band=${band:-$artist}
 	album=${album/\//}
-	folder="$out/$band/$album" 
+	if [[ "$partofset" =~ .*/.* ]]; then
+		partofset=${partofset%/*}
+		partofset=$((partofset+0))
+		folder="$out/$band/$album/CD${partofset}" 
+	else
+		folder="$out/$band/$album" 
+	fi
 	if [ ! -d "$folder" ]; then
 		mkdir -p "$folder"
 	fi
