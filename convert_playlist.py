@@ -1,9 +1,11 @@
 from tinytag import TinyTag
+import pickle
 import csv
 import os
 import sys
 import re
 from pathlib import Path
+import hashlib
 
 AUDIO_EXTS = {".mp3", ".flac", ".m4a", ".wav", ".ogg"}
 
@@ -15,6 +17,14 @@ nonletters = re.compile(r"[^a-z ]")
 
 commas = re.compile(r", .*")
 
+def hash_music_library(music_dir: Path):
+    hash = hashlib.new("md5")
+    for root, _, files in os.walk(music_dir):
+        for name in files:
+            path = Path(root) / name
+            if path.suffix.lower() in AUDIO_EXTS:
+                hash.update(bytes(path))
+    return hash.hexdigest()
 
 def index_music_library(music_dir: Path):
     index = []
@@ -89,7 +99,23 @@ def main(csv_path, music_dir, output_m3u):
     music_dir = Path(music_dir)
     output_m3u = Path(output_m3u)
 
-    library_index = index_music_library(music_dir)
+    library_hash = hash_music_library(music_dir)
+    library_index = []
+    should_reindex = False
+    if os.path.exists(music_dir / "musdb.pickle"):
+        with open(music_dir / "musdb.pickle", "rb") as file:
+            (old_hash, library_index) = pickle.load(file)
+            if old_hash != library_hash:
+                should_reindex = True
+    else:
+        should_reindex = True
+
+    if should_reindex:
+        print("Indexing music library...")
+        library_index = index_music_library(music_dir)
+        with open(music_dir / "musdb.pickle", "wb") as file:
+            pickle.dump((library_hash, library_index), file)
+        print("Done.")
 
     found = []
     missing = []
