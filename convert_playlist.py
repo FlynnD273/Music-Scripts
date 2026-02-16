@@ -19,7 +19,8 @@ commas = re.compile(r", .*")
 
 def hash_music_library(music_dir: Path):
     hash = hashlib.new("md5")
-    for root, _, files in os.walk(music_dir):
+    for root, dirs, files in os.walk(music_dir, topdown=True):
+        dirs[:] = [d for d in dirs if d[0] != "."]
         for name in files:
             path = Path(root) / name
             if path.suffix.lower() in AUDIO_EXTS:
@@ -28,7 +29,8 @@ def hash_music_library(music_dir: Path):
 
 def index_music_library(music_dir: Path):
     index = []
-    for root, _, files in os.walk(music_dir):
+    for root, dirs, files in os.walk(music_dir, topdown=True):
+        dirs[:] = [d for d in dirs if d[0] != "."]
         for name in files:
             path = Path(root) / name
             if path.suffix.lower() in AUDIO_EXTS:

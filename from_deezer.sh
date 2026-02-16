@@ -15,7 +15,7 @@ for file in "$in"/**/*.mp3; do
 	} < <(exiftool -s3 -artist -album -band -partofset "$file")
 	band=${band:-$artist}
 	album=${album/\//}
-	if [[ "$partofset" =~ .*/.* ]]; then
+	if [[ "$partofset" =~ .*/.* ]] && [[ ! "$partofset" =~ .*/1 ]]; then
 		partofset=${partofset%/*}
 		partofset=$((partofset+0))
 		folder="$out/$band/$album/CD${partofset}" 
