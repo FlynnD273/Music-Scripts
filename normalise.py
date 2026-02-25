@@ -7,7 +7,8 @@ import re
 
 path = sys.argv[1].rstrip(r"\/")
 
-invalid_chars = re.compile(r"[~*:\"!?&$]")
+invalid_chars = re.compile(r"[~*:\"!?&$#]")
+number_format = re.compile(r"([0-9]+)-?([0-9]+)? (.*)")
 
 find = []
 replace = []
@@ -26,10 +27,17 @@ def normalise(path):
                 .encode("ascii", "ignore")
                 .decode("ascii"),
             ).strip()
-            if not os.path.splitext(newpath)[0].strip():
-                newpath = os.path.join(
-                    os.path.dirname(newpath), "UNKNOWN" + os.path.splitext(newpath)[1]
-                )
+            (name, ext) = os.path.splitext(os.path.basename(newpath))
+            if not os.path.basename(newpath).strip()[:-4]:
+                newpath = os.path.join(os.path.dirname(newpath), "UNKNOWN" + ext)
+            else:
+                m = number_format.match(name)
+                if m:
+                    name = m[1]
+                    if m[2] is not None:
+                        name = m[2]
+                    name += f". {m[3]}{ext}"
+                    newpath = os.path.join(os.path.dirname(newpath), name)
 
             dirs = list(os.path.split(newpath))
             while dirs[0] != path:
