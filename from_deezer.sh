@@ -12,7 +12,9 @@ for file in "$in"/**/*.mp3; do
 		read -r album
 		read -r band
 		read -r partofset
-	} < <(exiftool -s3 -artist -album -band -partofset "$file")
+		read -r track
+		read -r title
+	} < <(exiftool -s3 -artist -album -band -partofset -track -title "$file")
 	band=${band:-$artist}
 	album=${album/\//}
 	if [[ "$partofset" =~ .*/.* ]] && [[ ! "$partofset" =~ .*/1 ]]; then
@@ -25,7 +27,6 @@ for file in "$in"/**/*.mp3; do
 	if [ ! -d "$folder" ]; then
 		mkdir -p "$folder"
 	fi
-	name="$(basename "$file")"
-	name="${name#*@}"
+  name="$(printf "%02d" ${track%\/*}). $title.mp3"
 	mv "$file" "$folder/$name"
 done
